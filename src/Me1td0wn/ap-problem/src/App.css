@@ -452,6 +452,13 @@
   font-weight: bold;
 }
 
+.solving-note {
+  font-size: 0.9rem !important;
+  font-weight: normal !important;
+  opacity: 0.8;
+  margin-top: 0.5rem;
+}
+
 /* フッター追加情報 */
 .exam-info {
   font-size: 1rem;

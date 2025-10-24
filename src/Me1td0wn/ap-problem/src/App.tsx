@@ -57,11 +57,12 @@ function App() {
   // 盤面をシャッフル（解ける状態を保証）
   const shuffleBoard = (n: number) => {
     const newBoard = createGoalBoard(n)
-    const shuffleMoves = n * n * 10 // 十分な回数シャッフル
+    const shuffleMoves = n * n * 20 // より多くシャッフル（3×3:180, 4×4:320, 5×5:500回）
 
     let currentBoard = newBoard.map(row => [...row])
     let emptyRow = n - 1
     let emptyCol = n - 1
+    let lastMove = { dr: 0, dc: 0 } // 直前の移動を記録
 
     for (let i = 0; i < shuffleMoves; i++) {
       const directions = []
@@ -70,7 +71,15 @@ function App() {
       if (emptyCol > 0) directions.push({ dr: 0, dc: -1 }) // 左
       if (emptyCol < n - 1) directions.push({ dr: 0, dc: 1 }) // 右
 
-      const randomDir = directions[Math.floor(Math.random() * directions.length)]
+      // 直前の移動の逆方向は除外（無駄な往復を防ぐ）
+      const validDirs = directions.filter(
+        d => !(d.dr === -lastMove.dr && d.dc === -lastMove.dc)
+      )
+      
+      const randomDir = validDirs.length > 0 
+        ? validDirs[Math.floor(Math.random() * validDirs.length)]
+        : directions[Math.floor(Math.random() * directions.length)]
+      
       const newRow = emptyRow + randomDir.dr
       const newCol = emptyCol + randomDir.dc
 
@@ -79,6 +88,7 @@ function App() {
       currentBoard[newRow][newCol] = 0
       emptyRow = newRow
       emptyCol = newCol
+      lastMove = randomDir
     }
 
     setBoard(currentBoard)
@@ -134,6 +144,11 @@ function App() {
 
     if (startKey === goalKey) return { path: [], boards: [] }
 
+    // 難易度に応じて探索制限を調整
+    const maxVisited = size === 3 ? 200000 : size === 4 ? 500000 : 1000000
+    const startTime = Date.now()
+    const maxTime = size === 3 ? 5000 : size === 4 ? 15000 : 30000 // ミリ秒
+
     interface QueueState {
       board: Board
       path: string[]
@@ -156,12 +171,19 @@ function App() {
     ]
 
     while (queue.length > 0) {
-      const current = queue.shift()!
-      
-      // 最大探索数制限（大きい盤面では時間がかかるため）
-      if (visited.size > 100000) {
+      // タイムアウトチェック
+      if (Date.now() - startTime > maxTime) {
+        console.log(`探索タイムアウト: ${maxTime}ms経過`)
         return null
       }
+
+      // 探索数制限チェック
+      if (visited.size > maxVisited) {
+        console.log(`探索制限到達: ${maxVisited}ノード`)
+        return null
+      }
+
+      const current = queue.shift()!
 
       // 空白マス（0）を見つける
       let emptyR = 0, emptyC = 0
@@ -199,6 +221,7 @@ function App() {
 
         // ゴールに到達したか確認
         if (newKey === goalKey) {
+          console.log(`解発見！ 手数: ${newPath.length}, 探索ノード数: ${visited.size}`)
           return { path: newPath, boards: newBoards }
         }
 
@@ -207,6 +230,7 @@ function App() {
       }
     }
 
+    console.log('全ての可能性を探索したが解が見つからない')
     return null // 解が見つからない
   }
 
@@ -221,7 +245,7 @@ function App() {
         setSolution(result)
         setShowHint(true)
       } else {
-        alert('この盤面は非常に複雑です。リセットして新しい盤面をお試しください。')
+        alert(`解が見つかりませんでした。\n\n考えられる原因：\n・盤面が複雑すぎて時間内に解けませんでした\n・リセットボタンで新しい盤面をお試しください\n\n（${size}×${size}の盤面は非常に複雑な場合があります）`)
       }
       setIsSolving(false)
     }, 100)
@@ -236,7 +260,7 @@ function App() {
     setIsSolving(false)
     
     if (!result || result.boards.length === 0) {
-      alert('解が見つかりませんでした。リセットしてお試しください。')
+      alert(`解が見つかりませんでした。\n\n考えられる原因：\n・盤面が複雑すぎて時間内に解けませんでした\n・リセットボタンで新しい盤面をお試しください\n\n（${size}×${size}の盤面は非常に複雑な場合があります）`)
       return
     }
 
@@ -350,6 +374,11 @@ function App() {
           <div className="solving-content">
             <div className="loader"></div>
             <p>解析中...</p>
+            <p className="solving-note">
+              {size === 3 && '通常数秒で完了します'}
+              {size === 4 && '最大15秒程度かかる場合があります'}
+              {size === 5 && '最大30秒程度かかる場合があります'}
+            </p>
           </div>
         </div>
       )}
