@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 
 type Board = number[][]
@@ -55,11 +55,11 @@ function App() {
   }
 
   // 盤面をシャッフル（解ける状態を保証）
-  const shuffleBoard = (n: number) => {
+  const shuffleBoard = useCallback((n: number) => {
     const newBoard = createGoalBoard(n)
     const shuffleMoves = n * n * 20 // より多くシャッフル（3×3:180, 4×4:320, 5×5:500回）
 
-    let currentBoard = newBoard.map(row => [...row])
+    const currentBoard = newBoard.map(row => [...row])
     let emptyRow = n - 1
     let emptyCol = n - 1
     let lastMove = { dr: 0, dc: 0 } // 直前の移動を記録
@@ -95,12 +95,12 @@ function App() {
     setEmptyPos({ row: emptyRow, col: emptyCol })
     setMoves(0)
     setIsComplete(false)
-  }
+  }, [])
 
   // 初期化
   useEffect(() => {
     shuffleBoard(size)
-  }, [size])
+  }, [size, shuffleBoard])
 
   // タイルをクリックしたときの処理
   const handleTileClick = (row: number, col: number) => {
