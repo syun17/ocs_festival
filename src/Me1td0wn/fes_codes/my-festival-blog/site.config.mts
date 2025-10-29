@@ -1,5 +1,5 @@
 import type { AstroInstance } from 'astro';
-import { Github, Instagram } from 'lucide-astro';
+import { Github, Twitter } from 'lucide-astro';
 
 export interface SocialLink {
 	name: string;
@@ -8,10 +8,10 @@ export interface SocialLink {
 }
 
 export default {
-	title: 'SR',
+	title: 'OCS-festival Blog',
 	favicon: 'favicon.ico',
-	owner: 'Sara Richard',
-	profileImage: 'profile.webp',
+	owner: 'Me1td0wn',
+	profileImage: 'profile.webp', // Image in src/assets
 	socialLinks: [
 		{
 			name: 'GitHub',
@@ -19,9 +19,9 @@ export default {
 			icon: Github,
 		} as SocialLink,
 		{
-			name: 'Instagram',
-			url: 'https://www.instagram.com',
-			icon: Instagram,
+			name: 'Twitter',
+			url: 'https://www.twitter.com/pretenders_001',
+			icon: Twitter,
 		} as SocialLink,
 	],
 };
