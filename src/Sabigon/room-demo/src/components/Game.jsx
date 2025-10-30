@@ -6,7 +6,9 @@ import { PointerLockControls } from "@react-three/drei";
 import * as THREE from "three";
 import { generateMaze } from "../mazeGenerator";
 import NoclipManager, { NoclipLoadingScreen } from "./NoclipEvent";
+import NoclipFalling3D from "./NoclipFalling3D";
 import BackroomLevel0 from "./BackroomLevel0";
+import BlueScreenEffect from "./BlueScreenEffect";
 
 function getWallPositionsFromMaze(maze, wallSize = 2) {
   const positions = [];
@@ -21,12 +23,12 @@ function getWallPositionsFromMaze(maze, wallSize = 2) {
 }
 
 export default function Game({ onClear }) {
-  const [gameState, setGameState] = useState("normal"); // "normal", "noclip-loading", "backroom"
+  const [gameState, setGameState] = useState("normal"); // "normal", "blue-screen", "noclip-falling", "noclip-loading", "backroom"
   const [noclipManager] = useState(() => new NoclipManager());
   
   const mazeWidth = 21;
   const mazeHeight = 21;
-  const maze = generateMaze(mazeWidth, mazeHeight);
+  const [maze] = useState(() => generateMaze(mazeWidth, mazeHeight)); // 一度だけ生成
 
   const [startTime] = useState(Date.now());
   const [goalPos] = useState(() => {
@@ -42,7 +44,7 @@ export default function Game({ onClear }) {
   });
 
   const wallSize = 2;
-  const wallPositions = getWallPositionsFromMaze(maze, wallSize);
+  const [wallPositions] = useState(() => getWallPositionsFromMaze(maze, wallSize)); // 一度だけ生成
 
   const handleClear = () => {
     const elapsed = (Date.now() - startTime) / 1000;
@@ -50,6 +52,14 @@ export default function Game({ onClear }) {
   };
 
   const handleNoclip = () => {
+    setGameState("blue-screen");
+  };
+
+  const handleBlueScreenComplete = () => {
+    setGameState("noclip-falling");
+  };
+
+  const handleFallComplete = () => {
     setGameState("noclip-loading");
   };
 
@@ -58,13 +68,24 @@ export default function Game({ onClear }) {
   };
 
   const handleEscapeBackroom = () => {
-    setGameState("normal");
-    noclipManager.reset();
+    // Backroomから脱出した場合はゲームクリア
+    const elapsed = (Date.now() - startTime) / 1000;
+    onClear(elapsed);
   };
+
+  // ブルースクリーン表示中
+  if (gameState === "blue-screen") {
+    return <BlueScreenEffect duration={2000} onComplete={handleBlueScreenComplete} />;
+  }
 
   // Backroomの場合
   if (gameState === "backroom") {
     return <BackroomLevel0 onEscape={handleEscapeBackroom} />;
+  }
+
+  // Noclip落下中
+  if (gameState === "noclip-falling") {
+    return <NoclipFalling3D onComplete={handleFallComplete} />;
   }
 
   // Noclipローディング中
@@ -75,7 +96,15 @@ export default function Game({ onClear }) {
   // 通常の迷路ゲーム
   return (
     <>
-      <Canvas camera={{ position: [2, 1.6, 2], fov: 75 }}>
+      <Canvas 
+        camera={{ position: [2, 1.6, 2], fov: 75 }}
+        gl={{ 
+          preserveDrawingBuffer: false,
+          powerPreference: "high-performance",
+          antialias: false,
+          alpha: false
+        }}
+      >
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <Maze maze={maze} goalPos={goalPos} />

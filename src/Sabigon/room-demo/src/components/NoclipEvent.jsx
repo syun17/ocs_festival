@@ -37,6 +37,122 @@ export class NoclipManager {
   }
 }
 
+// Noclip落下アニメーション
+export function NoclipFallingAnimation({ onFallComplete }) {
+  React.useEffect(() => {
+    // 落下アニメーション後にローディング画面へ遷移
+    const timer = setTimeout(() => {
+      onFallComplete();
+    }, 2000); // 2秒間の落下演出
+
+    return () => clearTimeout(timer);
+  }, [onFallComplete]);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "#000",
+        overflow: "hidden",
+        zIndex: 9999,
+      }}
+    >
+      {/* 落下する視界のエフェクト */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          fontSize: "72px",
+          color: "#fff",
+          textShadow: "0 0 20px #fff",
+          animation: "fall 2s ease-in forwards",
+          opacity: 0.8,
+        }}
+      >
+        ⚠️
+      </div>
+
+      {/* グリッチエフェクト */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          fontSize: "48px",
+          color: "#ff0000",
+          fontFamily: "monospace",
+          animation: "glitchShake 0.1s infinite",
+        }}
+      >
+        ERROR
+      </div>
+
+      {/* 背景の流れるライン */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background: "repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(255,255,0,0.1) 50px, rgba(255,255,0,0.1) 100px)",
+          animation: "fallLines 1s linear infinite",
+        }}
+      />
+
+      <style>
+        {`
+          @keyframes fall {
+            0% {
+              transform: translate(-50%, -50%) scale(1) rotate(0deg);
+              opacity: 0.8;
+            }
+            50% {
+              transform: translate(-50%, 0%) scale(1.5) rotate(180deg);
+              opacity: 0.5;
+            }
+            100% {
+              transform: translate(-50%, 100vh) scale(2) rotate(360deg);
+              opacity: 0;
+            }
+          }
+
+          @keyframes glitchShake {
+            0%, 100% {
+              transform: translate(-50%, -50%) translate(0, 0);
+            }
+            25% {
+              transform: translate(-50%, -50%) translate(-5px, 5px);
+            }
+            50% {
+              transform: translate(-50%, -50%) translate(5px, -5px);
+            }
+            75% {
+              transform: translate(-50%, -50%) translate(-5px, -5px);
+            }
+          }
+
+          @keyframes fallLines {
+            0% {
+              transform: translateY(-100px);
+            }
+            100% {
+              transform: translateY(0);
+            }
+          }
+        `}
+      </style>
+    </div>
+  );
+}
+
 // Noclipローディング画面コンポーネント
 export function NoclipLoadingScreen({ onLoadComplete }) {
   const [loadingProgress, setLoadingProgress] = React.useState(0);

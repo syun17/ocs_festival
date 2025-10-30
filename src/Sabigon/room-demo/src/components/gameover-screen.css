@@ -1,0 +1,218 @@
+.gameover-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 20000;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gameover-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #1a0000, #000000);
+  animation: bloodPulse 2s infinite;
+}
+
+@keyframes bloodPulse {
+  0%, 100% { 
+    background: radial-gradient(circle at center, #1a0000, #000000);
+  }
+  50% { 
+    background: radial-gradient(circle at center, #330000, #000000);
+  }
+}
+
+.gameover-noise {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.2;
+  mix-blend-mode: overlay;
+}
+
+.gameover-glitch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 0, 0, 0.1) 2px,
+    rgba(255, 0, 0, 0.1) 4px
+  );
+  animation: glitchDistort 0.3s infinite;
+}
+
+@keyframes glitchDistort {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px) scaleX(1.01); }
+  50% { transform: translateX(5px) scaleY(1.01); }
+  75% { transform: translateX(-3px) scaleX(1.02); }
+  100% { transform: translateX(0); }
+}
+
+.entity-shadow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.8), transparent);
+  filter: blur(100px);
+  animation: shadowPulse 3s infinite;
+}
+
+@keyframes shadowPulse {
+  0%, 100% { 
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.3;
+  }
+  50% { 
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.5;
+  }
+}
+
+.gameover-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  color: #fff;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 1s ease-out;
+}
+
+.gameover-content.show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.gameover-title {
+  font-size: 120px;
+  font-weight: bold;
+  color: #ff0000;
+  text-shadow: 
+    0 0 20px #ff0000,
+    0 0 40px #ff0000,
+    0 0 60px #ff0000,
+    5px 5px 0 #000;
+  margin: 0;
+  animation: titleGlitch 0.5s infinite;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  letter-spacing: 10px;
+}
+
+@keyframes titleGlitch {
+  0%, 90%, 100% {
+    transform: translate(0, 0);
+  }
+  92% {
+    transform: translate(-5px, 5px);
+  }
+  94% {
+    transform: translate(5px, -5px);
+  }
+  96% {
+    transform: translate(-3px, 3px);
+  }
+  98% {
+    transform: translate(3px, -3px);
+  }
+}
+
+.gameover-subtitle {
+  font-size: 24px;
+  color: #aaa;
+  margin: 20px 0 40px;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+  animation: subtitleFlicker 2s infinite;
+}
+
+@keyframes subtitleFlicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.gameover-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin: 40px 0;
+}
+
+.gameover-button {
+  padding: 15px 40px;
+  font-size: 20px;
+  font-weight: bold;
+  border: 3px solid;
+  background: transparent;
+  cursor: pointer;
+  font-family: 'Arial', sans-serif;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.gameover-button.restart {
+  color: #ff0000;
+  border-color: #ff0000;
+}
+
+.gameover-button.restart:hover {
+  background: #ff0000;
+  color: #fff;
+  box-shadow: 0 0 20px #ff0000;
+  transform: scale(1.05);
+}
+
+.gameover-button.menu {
+  color: #888;
+  border-color: #888;
+}
+
+.gameover-button.menu:hover {
+  background: #888;
+  color: #fff;
+  box-shadow: 0 0 20px #888;
+  transform: scale(1.05);
+}
+
+.gameover-hint {
+  margin-top: 40px;
+  font-size: 16px;
+  color: #666;
+  font-family: 'Courier New', monospace;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.gameover-vignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    transparent 0%,
+    transparent 30%,
+    rgba(0, 0, 0, 0.5) 70%,
+    rgba(0, 0, 0, 0.9) 100%
+  );
+}
