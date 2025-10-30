@@ -5,6 +5,8 @@ import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import { PointerLockControls } from "@react-three/drei";
 import * as THREE from "three";
 import { generateMaze } from "../mazeGenerator";
+import NoclipManager, { NoclipLoadingScreen } from "./NoclipEvent";
+import BackroomLevel0 from "./BackroomLevel0";
 
 function getWallPositionsFromMaze(maze, wallSize = 2) {
   const positions = [];
@@ -19,13 +21,12 @@ function getWallPositionsFromMaze(maze, wallSize = 2) {
 }
 
 export default function Game({ onClear }) {
+  const [gameState, setGameState] = useState("normal"); // "normal", "noclip-loading", "backroom"
+  const [noclipManager] = useState(() => new NoclipManager());
+  
   const mazeWidth = 21;
   const mazeHeight = 21;
   const maze = generateMaze(mazeWidth, mazeHeight);
-
-  const floorTexture = useLoader(THREE.TextureLoader, "/textures/yuka.jpg");
-  const wallTexture = useLoader(THREE.TextureLoader, "/textures/wall.jpg");
-  const ceilingTexture = useLoader(THREE.TextureLoader, "/textures/wall.jpg");
 
   const [startTime] = useState(Date.now());
   const [goalPos] = useState(() => {
@@ -48,13 +49,43 @@ export default function Game({ onClear }) {
     onClear(elapsed);
   };
 
+  const handleNoclip = () => {
+    setGameState("noclip-loading");
+  };
+
+  const handleNoclipLoadComplete = () => {
+    setGameState("backroom");
+  };
+
+  const handleEscapeBackroom = () => {
+    setGameState("normal");
+    noclipManager.reset();
+  };
+
+  // Backroomの場合
+  if (gameState === "backroom") {
+    return <BackroomLevel0 onEscape={handleEscapeBackroom} />;
+  }
+
+  // Noclipローディング中
+  if (gameState === "noclip-loading") {
+    return <NoclipLoadingScreen onLoadComplete={handleNoclipLoadComplete} />;
+  }
+
+  // 通常の迷路ゲーム
   return (
     <>
       <Canvas camera={{ position: [2, 1.6, 2], fov: 75 }}>
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
-        <Maze maze={maze} goalPos={goalPos} onClear={handleClear} />
-        <PlayerControls wallPositions={wallPositions} goalPos={goalPos} onClear={handleClear} />
+        <Maze maze={maze} goalPos={goalPos} />
+        <PlayerControls 
+          wallPositions={wallPositions} 
+          goalPos={goalPos} 
+          onClear={handleClear}
+          noclipManager={noclipManager}
+          onNoclip={handleNoclip}
+        />
       </Canvas>
       <div
         style={{
@@ -75,7 +106,7 @@ export default function Game({ onClear }) {
   );
 }
 
-function Maze({ maze, goalPos, onClear }) {
+function Maze({ maze, goalPos }) {
   const wallSize = 2;
 
   // テクスチャを読み込み
@@ -150,21 +181,20 @@ function Maze({ maze, goalPos, onClear }) {
   );
 }
 
-function PlayerControls({ wallPositions, goalPos, onClear }) {
+function PlayerControls({ wallPositions, goalPos, onClear, noclipManager, onNoclip }) {
   const { camera, gl } = useThree();
   const direction = useRef(new THREE.Vector3());
   const keys = useRef({});
+  const lastPosition = useRef(new THREE.Vector3());
 
   const wallSize = 2;
   const walkSpeed = 4.0;
   const runSpeed = 8.0; // 走る速度を追加
 
   // ゴール座標
-  const goalPosition = [
-    goalPos[0] * wallSize,
-    0.75,
-    goalPos[1] * wallSize,
-  ];
+  const goalX = goalPos[0] * wallSize;
+  const goalY = 0.75;
+  const goalZ = goalPos[1] * wallSize;
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -186,9 +216,9 @@ function PlayerControls({ wallPositions, goalPos, onClear }) {
     const handleMouseDown = (e) => {
       if (e.button === 2) {
         const camPos = camera.position;
-        const dx = camPos.x - goalPosition[0];
-        const dy = camPos.y - goalPosition[1];
-        const dz = camPos.z - goalPosition[2];
+        const dx = camPos.x - goalX;
+        const dy = camPos.y - goalY;
+        const dz = camPos.z - goalZ;
         const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (dist < 1.5) {
           onClear();
@@ -199,7 +229,7 @@ function PlayerControls({ wallPositions, goalPos, onClear }) {
     return () => {
       gl.domElement.removeEventListener("mousedown", handleMouseDown);
     };
-  }, [camera, gl, goalPosition, onClear]);
+  }, [camera, gl, goalX, goalY, goalZ, onClear]);
 
   useFrame((_, delta) => {
     direction.current.set(0, 0, 0);
@@ -230,6 +260,18 @@ function PlayerControls({ wallPositions, goalPos, onClear }) {
 
     const currentPos = camera.position.clone();
 
+    // 移動した距離を計算
+    const movementDistance = currentPos.distanceTo(lastPosition.current);
+    
+    // 一定距離以上移動したらnoclipの判定を行う
+    if (movementDistance > 0.1) {
+      if (noclipManager.checkNoclip()) {
+        onNoclip();
+        return; // noclip発生時は以降の処理をスキップ
+      }
+      lastPosition.current.copy(currentPos);
+    }
+
     // X方向だけ動かして判定
     const posX = currentPos.clone().add(new THREE.Vector3(move.x, 0, 0));
     if (!isColliding(posX, wallPositions)) {
@@ -243,9 +285,9 @@ function PlayerControls({ wallPositions, goalPos, onClear }) {
     }
 
     // --- ゴールとの当たり判定を追加 ---
-    const dx = camera.position.x - goalPosition[0];
-    const dy = camera.position.y - goalPosition[1];
-    const dz = camera.position.z - goalPosition[2];
+    const dx = camera.position.x - goalX;
+    const dy = camera.position.y - goalY;
+    const dz = camera.position.z - goalZ;
     const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
     if (dist < 1.0) { // 球体半径＋プレイヤー半径程度
       onClear();
