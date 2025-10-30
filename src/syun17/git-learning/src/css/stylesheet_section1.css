@@ -1,0 +1,80 @@
+
+
+
+/* --- ページ全体の基本設定 --- */
+body {
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; /* 読みやすいフォントを指定 */
+    line-height: 1.7; /* 行間を少し広めにして読みやすく */
+    background-color: #fdfdfa; /* ほんのりクリーム色の背景 */
+    color: #333; /* 基本の文字色 */
+    margin: 0;
+    padding: 0;
+}
+header {
+    /* --- 配置 (スティッキーヘッダー) --- */
+    position: sticky;
+    top: 20px; 
+    z-index: 100; 
+    background: #f8f9fa; /* 薄いグレー */
+    color: #444; /* 濃いグレーの文字 */
+    font-size: 1em; 
+    font-weight: bold;
+    text-align: left; 
+    padding: 12px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); 
+    text-shadow: none;
+
+    /* --- 位置調整 (重要) --- */
+    /* bodyの左右パディング(40px * 2)分だけ幅を広げる */
+    width: calc(100% + 80px); 
+    /* bodyのpadding-left分(40px)だけ左にずらす */
+    margin-left: -40px; 
+    
+    /* ★変更: bodyのpadding-top(70px)分だけ上にずらす */
+    margin-top: -70px; 
+    
+    /* ★変更: ヘッダーとh1の間の余白を確保 */
+    margin-bottom: 20px; 
+}
+/*全体のレイアウト（中央寄せ)*/
+body {
+    max-width: 900px; /* 最大幅*/
+    margin: 50px auto 20px; /* 上下に余白、左右は自動で中央寄せ */
+    padding: 20px 40px; /* 内側の余白 */
+    background-color: #ffffff; /* 白背景*/
+    border-radius: 10px;
+}
+
+h1 {
+    font-size: 2em; 
+    text-align: center; 
+    color: #007bff; 
+    border-bottom: 3px solid #007bff; /* 下線 */
+    padding-bottom: 10px; /* 下線との余白 */
+    margin-top: 0; /* 上の余白 */
+    margin-bottom: 30px; /* 下の余白 */
+}
+
+h2 {
+    font-size: 1.6em;
+    color: #333; /* 濃いグレー */
+    border-left: 6px solid #007bff; /* 左側にアクセントの線を引く */
+    padding-left: 10px; /* 左の線との余白 */
+    margin-top: 40px; /* 他のセクションとの間隔 */
+    margin-bottom: 20px;
+}
+
+p {
+    font-size: 1em; /* 基本の文字サイズ (16pxが一般的) */
+    margin-bottom: 20px; /* 段落ごとの余白 */
+}
+
+img {
+    max-width: 100%; /* 親要素（ここではbody）の幅を最大にする */
+    height: auto; /* 幅に合わせて高さを自動調整 */
+    display: block; /* 画像をブロック要素にして中央寄せしやすくする */
+    margin: 30px auto; /* 上下と、左右（中央寄せ）の余白 */
+    border-radius: 8px; /* 画像の角を少し丸くする */
+    border: 1px solid #ddd; /* 薄いグレーの枠線 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08); /* 影 */
+}
