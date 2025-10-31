@@ -24,11 +24,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const questionElement = document.getElementById('question');
     const choicesElement = document.getElementById('choices');
     const nextBtn = document.getElementById('nextBtn');
-    // ▼▼▼ 修正箇所 ▼▼▼
-    const resultElement = document.getElementById('result'); // result要素を取得する行を追加
+    const resultElement = document.getElementById('result');
 
     let currentQuestionIndex = 0;
-    
+    let score = 0;
+
     function displayQuestion(){
         resultElement.textContent = '';
         nextBtn.style.display = 'none';
@@ -37,19 +37,20 @@ document.addEventListener('DOMContentLoaded', function() {
         questionElement.textContent = `${currentQuestionIndex + 1}問: ${currentQuestion.question}`;
         choicesElement.innerHTML = '';
 
-        // ボタンがクリックされた後、他のボタンを押せないようにする
-        const buttons = choicesElement.querySelectorAll('button');
-        buttons.forEach(btn => btn.disabled = true);
-
         currentQuestion.choices.forEach(choice => {
             const li = document.createElement('li');
             const button = document.createElement('button');
             button.textContent = choice;
             button.addEventListener('click', function(){
+                // 全ての選択肢ボタンを無効化
+                const allButtons = choicesElement.querySelectorAll('button');
+                allButtons.forEach(btn => btn.disabled = true);
+
                 if(choice === currentQuestion.answer){
-                    resultElement.textContent = '正解！';
+                    score++;
+                    resultElement.innerHTML = '<h1 class="correct">⭕️</h1><p>正解！</p>';
                 } else {
-                    resultElement.textContent = `不正解！正しい答えは: ${currentQuestion.answer}`;
+                    resultElement.innerHTML = `<h1 class="incorrect">❌</h1><p>不正解！正解は: ${currentQuestion.answer}</p>`;
                 }
                 nextBtn.style.display = 'inline';
             });
@@ -64,7 +65,11 @@ document.addEventListener('DOMContentLoaded', function() {
             displayQuestion();
         } else {
             const quizContainer = document.getElementById('quiz-container');
-            quizContainer.innerHTML = '<h1>クイズ終了！お疲れ様でした。</h1><a href="section4.html">section4へ</a>';
+            quizContainer.innerHTML = `
+                <h1>クイズ終了！お疲れ様でした。</h1>
+                <h2>${quiz.length}問中${score}問正解です！</h2>
+                <a href="section4.html">section4へ</a>
+            `;
         }
     });
 
