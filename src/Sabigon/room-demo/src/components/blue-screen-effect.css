@@ -1,0 +1,207 @@
+.blue-screen-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.blue-screen-base {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #0a1e4a;
+  animation: blueFlicker 0.1s infinite;
+}
+
+@keyframes blueFlicker {
+  0%, 100% { background: #0a1e4a; }
+  50% { background: #0d2558; }
+}
+
+.vcr-glitch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: 100% auto;
+  background-repeat: repeat-y;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  transition: background-position 0.05s linear;
+}
+
+.blue-screen-noise {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.15;
+  mix-blend-mode: overlay;
+}
+
+.blue-screen-glitch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.03) 2px,
+    rgba(255, 255, 255, 0.03) 4px
+  );
+  animation: glitchShift 0.2s infinite;
+}
+
+@keyframes glitchShift {
+  0% { transform: translateY(0); }
+  25% { transform: translateY(-2px); }
+  50% { transform: translateY(2px); }
+  75% { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+
+.glitch-line {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: glitchLineMove 0.3s infinite;
+  pointer-events: none;
+}
+
+@keyframes glitchLineMove {
+  0% { 
+    left: -100%;
+    opacity: 0;
+  }
+  50% {
+    left: 0;
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+.camera-ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.camera-text {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rec-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.rec-dot {
+  width: 12px;
+  height: 12px;
+  background: #ff0000;
+  border-radius: 50%;
+  animation: recBlink 1s infinite;
+  box-shadow: 0 0 10px #ff0000;
+}
+
+@keyframes recBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.stage-info {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.camera-status {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.battery-indicator {
+  display: flex;
+  align-items: center;
+}
+
+.battery-bars {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+}
+
+.battery-bars span {
+  width: 6px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  display: block;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.battery-bars span:nth-child(2) {
+  height: 16px;
+}
+
+.battery-bars span:nth-child(3) {
+  height: 12px;
+}
+
+.battery-bars span:nth-child(4) {
+  height: 8px;
+}
+
+.sp-indicator {
+  font-size: 32px;
+  font-weight: bold;
+  letter-spacing: 4px;
+  opacity: 0.9;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+}
+
+.blue-screen-vignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    transparent 0%,
+    transparent 40%,
+    rgba(0, 0, 0, 0.3) 70%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+}
