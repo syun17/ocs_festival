@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
         nextBtn.style.display = 'none';
 
         const currentQuestion = quiz[currentQuestionIndex];
-        questionElement.textContent = `${currentQuestionIndex + 1}問: ${currentQuestion.question}`;
+        questionElement.textContent = `${currentQuestionIndex + 1}問目: ${currentQuestion.question}`;
         choicesElement.innerHTML = '';
 
         currentQuestion.choices.forEach(choice => {
