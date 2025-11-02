@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './gameover-screen.css';
 
-export default function GameOverScreen({ onRestart }) {
+export default function GameOverScreen() {
   const [glitchIntensity, setGlitchIntensity] = useState(0);
   const [showText, setShowText] = useState(false);
   const audioRef = useRef(null);
@@ -93,7 +93,7 @@ export default function GameOverScreen({ onRestart }) {
         <div className="gameover-buttons">
           <button 
             className="gameover-button restart"
-            onClick={onRestart}
+            onClick={() => window.location.reload()}
           >
             TRY AGAIN
           </button>

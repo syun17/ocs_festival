@@ -8,6 +8,7 @@ import { generateMaze } from "../mazeGenerator";
 import NoclipManager, { NoclipLoadingScreen } from "./NoclipEvent";
 import NoclipFalling3D from "./NoclipFalling3D";
 import BackroomLevel0 from "./BackroomLevel0";
+import BackroomLevelRun from "./BackroomLevelRun";
 import BlueScreenEffect from "./BlueScreenEffect";
 
 function getWallPositionsFromMaze(maze, wallSize = 2) {
@@ -23,7 +24,7 @@ function getWallPositionsFromMaze(maze, wallSize = 2) {
 }
 
 export default function Game({ onClear }) {
-  const [gameState, setGameState] = useState("normal"); // "normal", "blue-screen", "noclip-falling", "noclip-loading", "backroom"
+  const [gameState, setGameState] = useState("normal"); // "normal", "blue-screen", "noclip-falling", "noclip-loading", "backroom", "level-run"
   const [noclipManager] = useState(() => new NoclipManager());
   
   const mazeWidth = 21;
@@ -68,7 +69,12 @@ export default function Game({ onClear }) {
   };
 
   const handleEscapeBackroom = () => {
-    // Backroomから脱出した場合はゲームクリア
+    // Backroomから脱出した場合はLevel Runへ遷移
+    setGameState("level-run");
+  };
+
+  const handleEscapeLevelRun = () => {
+    // Level Runをクリアした場合はゲームクリア
     const elapsed = (Date.now() - startTime) / 1000;
     onClear(elapsed);
   };
@@ -78,9 +84,14 @@ export default function Game({ onClear }) {
     return <BlueScreenEffect duration={2000} onComplete={handleBlueScreenComplete} />;
   }
 
-  // Backroomの場合
+  // Backroom Level 0
   if (gameState === "backroom") {
     return <BackroomLevel0 onEscape={handleEscapeBackroom} />;
+  }
+
+  // Backroom Level ! (Run For Your Life!)
+  if (gameState === "level-run") {
+    return <BackroomLevelRun onEscape={handleEscapeLevelRun} />;
   }
 
   // Noclip落下中
