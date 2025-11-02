@@ -1,23 +1,32 @@
 document.addEventListener('DOMContentLoaded', function() {
     const quiz = [
         {
-            question:"最初にどのような操作を行うべきか？",
+            question:"変更を確定するファイルを選ぶには、どのコマンドを使うべきか？",
             choices:[
-                "git cloneでリポジトリをコピーする",
-                "git commitで変更を保存する",
-                "git pushで変更をリモートに送信する",
-                "git branchで新しいブランチを作成する"
+                "git push",
+                "git add",
+                "git commit",
+                "git status"
             ],
-            answer: "git cloneでリポジトリをコピーする"
+            answer: "git add"
         },{
-            question:"リモートリポジトリが更新されたみたいです。最新の状態を取得するには？",
+            question:"変更を確定するためには、どのコマンドを使うべきか？",
             choices:[
                 "git fetch",
+                "git pull",
                 "git commit",
-                "git push",
-                "git pull"
+                "git push"
             ],
-            answer: "git fetch"
+            answer: "git commit"
+        },{
+            question:"変更をリモートリポジトリに反映させるには、どのコマンドを使うべきか？",
+            choices:[
+                "git pull",
+                "git clone",
+                "git push",
+                "git status"
+            ],
+            answer: "git push"
         }
     ];
 
@@ -28,28 +37,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultElement = document.getElementById('result'); // result要素を取得する行を追加
 
     let currentQuestionIndex = 0;
-    
+    let score = 0;
+
     function displayQuestion(){
         resultElement.textContent = '';
         nextBtn.style.display = 'none';
 
         const currentQuestion = quiz[currentQuestionIndex];
-        questionElement.textContent = `${currentQuestionIndex + 1}問: ${currentQuestion.question}`;
+        questionElement.textContent = `${currentQuestionIndex + 1}問目: ${currentQuestion.question}`;
         choicesElement.innerHTML = '';
-
-        // ボタンがクリックされた後、他のボタンを押せないようにする
-        const buttons = choicesElement.querySelectorAll('button');
-        buttons.forEach(btn => btn.disabled = true);
 
         currentQuestion.choices.forEach(choice => {
             const li = document.createElement('li');
             const button = document.createElement('button');
             button.textContent = choice;
             button.addEventListener('click', function(){
+                // 全ての選択肢ボタンを無効化
+                const allButtons = choicesElement.querySelectorAll('button');
+                allButtons.forEach(btn => btn.disabled = true);
+
                 if(choice === currentQuestion.answer){
-                    resultElement.textContent = '正解！';
+                    score++;
+                    resultElement.innerHTML = '<h1 class="correct">⭕️</h1><p>正解！</p>';
                 } else {
-                    resultElement.textContent = `不正解！正しい答えは: ${currentQuestion.answer}`;
+                    resultElement.innerHTML = `<h1 class="incorrect">❌</h1><p>不正解！正解は: ${currentQuestion.answer}</p>`;
                 }
                 nextBtn.style.display = 'inline';
             });
@@ -64,7 +75,11 @@ document.addEventListener('DOMContentLoaded', function() {
             displayQuestion();
         } else {
             const quizContainer = document.getElementById('quiz-container');
-            quizContainer.innerHTML = '<h1>クイズ終了！お疲れ様でした。</h1><a href="section4.html">section4へ</a>';
+            quizContainer.innerHTML = `
+                <h1>クイズ終了！お疲れ様でした。</h1>
+                <h2>${quiz.length}問中${score}問正解です！</h2>
+                <a href="section5.html">section5へ</a>
+            `;
         }
     });
 
