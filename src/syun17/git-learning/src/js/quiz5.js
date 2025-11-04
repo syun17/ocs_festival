@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ],
             answer: "git checkout -b ブランチ名"
         },{
-            question:"ブランチをリモートリポジトリに反映させる二は、どのコマンドを使うべきか？",
+            question:"ブランチをリモートリポジトリに反映させるには、どのコマンドを使うべきか？",
             choices:[
                 "git pull",
                 "git clone",
