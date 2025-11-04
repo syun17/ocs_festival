@@ -88,9 +88,9 @@ export default function Entity({ position, playerPosition, onCatch, onPositionUp
     const gridX = Math.floor(nextPos.x / wallSize);
     const gridZ = Math.floor(nextPos.z / wallSize);
     
-    // マップ境界チェック
+    // マップ境界チェック - 境界外の場合はfalseを返して移動を許可
     if (gridX < 0 || gridX >= maze[0].length || gridZ < 0 || gridZ >= maze.length) {
-      return true;
+      return false;
     }
     
     // 壁かどうかチェック
@@ -111,8 +111,9 @@ export default function Entity({ position, playerPosition, onCatch, onPositionUp
       const checkX = Math.floor((nextPos.x + dx) / wallSize);
       const checkZ = Math.floor((nextPos.z + dz) / wallSize);
       
+      // 境界外の場合はスキップ
       if (checkX < 0 || checkX >= maze[0].length || checkZ < 0 || checkZ >= maze.length) {
-        return true;
+        continue;
       }
       
       if (maze[checkZ][checkX] === 1) {
@@ -251,8 +252,8 @@ export default function Entity({ position, playerPosition, onCatch, onPositionUp
         playerPosition.z - entityPos.z
       ).normalize();
 
-      // 走るより少し遅い速度 (プレイヤーの走り速度が6.0なので5.5に設定)
-      const chaseSpeed = 5.5;
+      // ギリギリ追いつかれないくらいの速度 (プレイヤーの走り速度が6.0なので5.8に設定)
+      const chaseSpeed = 5.8;
       const velocity = direction.clone().multiplyScalar(chaseSpeed * delta);
 
       // 次の位置を計算
