@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
             quizContainer.innerHTML = `
                 <h1>クイズ終了！お疲れ様でした。</h1>
                 <h2>${quiz.length}問中${score}問正解です！</h2>
-                <a href="section5.html">section5へ</a>
+                <a href="section7.html">section7へ</a>
             `;
         }
     });
