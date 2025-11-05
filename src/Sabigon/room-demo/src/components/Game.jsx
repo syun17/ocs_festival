@@ -23,7 +23,7 @@ function getWallPositionsFromMaze(maze, wallSize = 2) {
   return positions;
 }
 
-export default function Game({ onClear }) {
+export default function Game({ onClear, roomConfig }) {
   const [gameState, setGameState] = useState("normal"); // "normal", "blue-screen", "noclip-falling", "noclip-loading", "backroom", "level-run"
   const [noclipManager] = useState(() => new NoclipManager());
   
@@ -125,6 +125,7 @@ export default function Game({ onClear }) {
           onClear={handleClear}
           noclipManager={noclipManager}
           onNoclip={handleNoclip}
+          roomConfig={roomConfig}
         />
       </Canvas>
       <div
