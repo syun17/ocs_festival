@@ -72,7 +72,7 @@ h3 {
 }
 
 p {
-    font-size: 1em; /* 基本の文字サイズ (16pxが一般的) */
+    font-size: 1.4em; /* 基本の文字サイズ (16pxが一般的) */
     margin-bottom: 20px; /* 段落ごとの余白 */
 }
 
