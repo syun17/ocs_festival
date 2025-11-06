@@ -85,3 +85,8 @@ img {
     border: 1px solid #ddd; /* 薄いグレーの枠線 */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08); /* 影 */
 }
+
+li {
+    font-size: 1.4em; /* リストの文字サイズ */
+    margin-bottom: 10px; /* リストアイテム間の余白 */
+}
