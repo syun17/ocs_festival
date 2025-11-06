@@ -85,6 +85,41 @@ server.on("connection", (socket) => {
           // ルーム内の全クライアントに状態をブロードキャスト
           broadcastToRoom(roomId);
         }
+      } else if (data.type === "noclip") {
+        // Noclipイベント: ルーム内の全員に通知
+        const roomId = playerToRoom.get(playerId);
+        
+        if (!roomId || !rooms.has(roomId)) return;
+        
+        console.log(`🌀 Player ${playerId} triggered noclip in room ${roomId}`);
+        
+        const room = rooms.get(roomId);
+        room.players.forEach((playerData) => {
+          if (playerData.socket.readyState === WebSocket.OPEN) {
+            playerData.socket.send(JSON.stringify({
+              type: "trigger-noclip",
+              triggeredBy: playerId
+            }));
+          }
+        });
+      } else if (data.type === "level-complete") {
+        // レベル完了イベント: ルーム内の全員に通知
+        const roomId = playerToRoom.get(playerId);
+        
+        if (!roomId || !rooms.has(roomId)) return;
+        
+        console.log(`✅ Player ${playerId} completed level "${data.level}" in room ${roomId}`);
+        
+        const room = rooms.get(roomId);
+        room.players.forEach((playerData) => {
+          if (playerData.socket.readyState === WebSocket.OPEN) {
+            playerData.socket.send(JSON.stringify({
+              type: "trigger-level-complete",
+              level: data.level,
+              triggeredBy: playerId
+            }));
+          }
+        });
       }
     } catch (error) {
       console.error("❌ Message parse error:", error);
