@@ -7,6 +7,7 @@ import * as THREE from "three";
 import Entity from "./Entity";
 import GameOverScreen from "./GameOverScreen";
 import VHSEffect from "./VHSEffect";
+import OtherPlayer from "./OtherPlayer";
 
 // 病院の廊下を生成（一本道 + 障害物）
 function generateHospitalCorridor(length = 100) {
@@ -74,6 +75,7 @@ export default function BackroomLevelRun({ onEscape, onGameOver }) {
   const [gameOver, setGameOver] = useState(false);
   const [playerPosition, setPlayerPosition] = useState(null);
   const [distance, setDistance] = useState(0); // ゴールまでの距離
+  const [otherPlayers, setOtherPlayers] = useState([]); // 他プレイヤーのリスト
   const wallSize = 2;
   const corridorLength = 100;
   const goalDistance = corridorLength * wallSize - 20; // ゴール地点
@@ -90,6 +92,10 @@ export default function BackroomLevelRun({ onEscape, onGameOver }) {
     // ゴールまでの距離を計算
     const distanceToGoal = goalDistance - position.z;
     setDistance(Math.max(0, Math.floor(distanceToGoal)));
+    
+    // マルチプレイ対応: 自分の位置をサーバーに送信
+    // 実際の実装では、WebSocketを使って位置情報を送信
+    // sendPlayerPosition(position);
     
     // ゴール到達チェック
     if (position.z >= goalDistance) {
@@ -116,6 +122,33 @@ export default function BackroomLevelRun({ onEscape, onGameOver }) {
         console.log("Audio play failed:", err.message);
       });
     }
+  }, []);
+
+  // マルチプレイ対応: 他プレイヤーデータの更新
+  // 実際の実装では、WebSocketやその他の通信手段を使用してデータを受け取る
+  useEffect(() => {
+    // デモ用: ダミーの他プレイヤーデータ
+    // 実際のマルチプレイでは、サーバーから他プレイヤーの位置を受信する
+    const updateOtherPlayers = () => {
+      // 例: setOtherPlayers([
+      //   { id: "player1", position: [10, 1.6, 20], rotation: 0, name: "Player 1" },
+      //   { id: "player2", position: [12, 1.6, 25], rotation: Math.PI/4, name: "Player 2" }
+      // ]);
+    };
+
+    // WebSocketの接続例（コメントアウト）
+    // const ws = new WebSocket('ws://localhost:8080');
+    // ws.onmessage = (event) => {
+    //   const data = JSON.parse(event.data);
+    //   if (data.type === 'playerUpdate') {
+    //     setOtherPlayers(data.players);
+    //   }
+    // };
+    
+    updateOtherPlayers();
+    
+    // クリーンアップ
+    // return () => { ws.close(); };
   }, []);
 
   if (gameOver) {
@@ -154,6 +187,16 @@ export default function BackroomLevelRun({ onEscape, onGameOver }) {
               onCatch={handleEntityCatch}
               maze={maze}
               wallSize={wallSize}
+            />
+          ))}
+          
+          {/* 他プレイヤーの表示 */}
+          {otherPlayers.map((player) => (
+            <OtherPlayer
+              key={player.id}
+              position={player.position}
+              rotation={player.rotation}
+              playerName={player.name}
             />
           ))}
           
