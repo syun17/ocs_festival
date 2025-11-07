@@ -90,3 +90,7 @@ li {
     font-size: 1.4em; /* リストの文字サイズ */
     margin-bottom: 10px; /* リストアイテム間の余白 */
 }
+
+strong {
+    color: red; /* 強調テキストの色を赤系に */
+}
