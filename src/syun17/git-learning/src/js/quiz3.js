@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ],
             answer: "git cloneでリポジトリをコピーする"
         },{
-            question:"リモートリポジトリが更新されたみたいです。最新の状態を取得するには？",
+            question:"リモートリポジトリが更新されたみたいです。ファイルに反映させずに最新の状態を取得するには？",
             choices:[
                 "git fetch",
                 "git commit",
