@@ -8,7 +8,7 @@ export class NoclipManager {
     this.stepCount = 0;
     // デバッグ用: 0.05 (5%の確率) 
     // 本番用: 0.001 (0.1%の確率、1000歩に1回程度)
-    this.noclipProbability = 0.001;
+    this.noclipProbability = 0.01;
     this.hasNoclipped = false;
   }
 
