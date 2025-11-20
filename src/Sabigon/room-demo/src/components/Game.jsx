@@ -10,6 +10,8 @@ import NoclipFalling3D from "./NoclipFalling3D";
 import BackroomLevel0 from "./BackroomLevel0";
 import BackroomLevelRun from "./BackroomLevelRun";
 import BlueScreenEffect from "./BlueScreenEffect";
+import MultiplayerManager from "./MultiplayerManager";
+import OtherPlayer from "./OtherPlayer";
 
 function getWallPositionsFromMaze(maze, wallSize = 2) {
   const positions = [];
@@ -23,9 +25,12 @@ function getWallPositionsFromMaze(maze, wallSize = 2) {
   return positions;
 }
 
-export default function Game({ onClear }) {
+export default function Game({ onClear, roomConfig }) {
   const [gameState, setGameState] = useState("normal"); // "normal", "blue-screen", "noclip-falling", "noclip-loading", "backroom", "level-run"
   const [noclipManager] = useState(() => new NoclipManager());
+  const [otherPlayers, setOtherPlayers] = useState([]); // 他プレイヤーのリスト
+  const [createdRoomId, setCreatedRoomId] = useState(null); // ホストが作成したルームID
+  const [playerPosition, setPlayerPosition] = useState(null); // プレイヤーの位置
   
   const mazeWidth = 21;
   const mazeHeight = 21;
@@ -54,6 +59,11 @@ export default function Game({ onClear }) {
 
   const handleNoclip = () => {
     setGameState("blue-screen");
+    
+    // マルチプレイ中の場合、全員にnoclipイベントを送信
+    if (window.multiplayerSendNoclip) {
+      window.multiplayerSendNoclip();
+    }
   };
 
   const handleBlueScreenComplete = () => {
@@ -79,6 +89,28 @@ export default function Game({ onClear }) {
     onClear(elapsed);
   };
 
+  // ルーム作成時のコールバック
+  const handleRoomCreated = (roomId) => {
+    setCreatedRoomId(roomId);
+    console.log(`[Game] Room created: ${roomId}`);
+  };
+
+  // マルチプレイエラーハンドラ
+  const handleMultiplayerError = (errorMessage) => {
+    console.error(`[Game] Multiplayer error: ${errorMessage}`);
+  };
+
+  // プレイヤー位置更新のコールバック
+  const handlePlayerPositionUpdate = (position) => {
+    setPlayerPosition(position);
+  };
+
+  // 他プレイヤーがnoclipをトリガーしたときの処理
+  const handleNoclipTriggered = (triggeredBy) => {
+    console.log(`[Game] Noclip triggered by player ${triggeredBy}`);
+    setGameState("blue-screen");
+  };
+
   // ブルースクリーン表示中
   if (gameState === "blue-screen") {
     return <BlueScreenEffect duration={2000} onComplete={handleBlueScreenComplete} />;
@@ -91,7 +123,12 @@ export default function Game({ onClear }) {
 
   // Backroom Level ! (Run For Your Life!)
   if (gameState === "level-run") {
-    return <BackroomLevelRun onEscape={handleEscapeLevelRun} />;
+    return (
+      <BackroomLevelRun 
+        onEscape={handleEscapeLevelRun} 
+        multiplayerConfig={roomConfig}
+      />
+    );
   }
 
   // Noclip落下中
@@ -119,14 +156,47 @@ export default function Game({ onClear }) {
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <Maze maze={maze} goalPos={goalPos} />
+        
+        {/* 他プレイヤーの表示 */}
+        {otherPlayers.map((player) => (
+          <OtherPlayer
+            key={player.id}
+            position={player.position}
+            rotation={player.rotation}
+            playerName={player.name}
+          />
+        ))}
+        
         <PlayerControls 
           wallPositions={wallPositions} 
           goalPos={goalPos} 
           onClear={handleClear}
           noclipManager={noclipManager}
           onNoclip={handleNoclip}
+          roomConfig={roomConfig}
+          onPositionUpdate={handlePlayerPositionUpdate}
         />
       </Canvas>
+      
+      {/* マルチプレイヤー通信マネージャー */}
+      {roomConfig && (
+        <MultiplayerManager
+          serverUrl="ws://localhost:8080"
+          mode={roomConfig.mode}
+          roomId={roomConfig.roomId}
+          playerName={roomConfig.playerName}
+          playerPosition={playerPosition ? {
+            x: playerPosition.x,
+            y: playerPosition.y,
+            z: playerPosition.z
+          } : null}
+          onPlayersUpdate={setOtherPlayers}
+          onRoomCreated={handleRoomCreated}
+          onError={handleMultiplayerError}
+          onNoclipTriggered={handleNoclipTriggered}
+        />
+      )}
+      
       <div
         style={{
           position: "absolute",
@@ -141,6 +211,54 @@ export default function Game({ onClear }) {
         <p>WASDで移動、マウスで視点</p>
         <p>右クリック→ゴール判定</p>
         <p>Escで解除</p>
+        
+        {/* マルチプレイ情報の表示 */}
+        {roomConfig && (
+          <div style={{ 
+            marginTop: "15px", 
+            padding: "15px", 
+            backgroundColor: "rgba(0, 255, 0, 0.3)",
+            border: "3px solid #00ff00",
+            borderRadius: "8px",
+            boxShadow: "0 0 20px rgba(0, 255, 0, 0.5)"
+          }}>
+            <p style={{ color: "#00ff00", fontSize: "18px", margin: "5px 0", fontWeight: "bold" }}>
+              👥 マルチプレイモード
+            </p>
+            
+            {/* ホストの場合：作成されたルームID、ゲストの場合：参加したルームID */}
+            {(createdRoomId || roomConfig.roomId) && (
+              <div style={{
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                padding: "10px",
+                borderRadius: "5px",
+                margin: "10px 0",
+                border: "2px solid #ffff00"
+              }}>
+                <p style={{ color: "#ffff00", fontSize: "14px", margin: "3px 0" }}>
+                  {roomConfig.mode === "host" ? "📢 フレンドに共有:" : "参加中:"}
+                </p>
+                <p style={{ 
+                  color: "#ffff00", 
+                  fontSize: "32px", 
+                  margin: "5px 0", 
+                  fontWeight: "bold",
+                  letterSpacing: "8px",
+                  textShadow: "0 0 15px #ffff00"
+                }}>
+                  {createdRoomId || roomConfig.roomId}
+                </p>
+              </div>
+            )}
+            
+            <p style={{ color: "#00ff00", fontSize: "14px", margin: "5px 0" }}>
+              プレイヤー: {roomConfig.playerName}
+            </p>
+            <p style={{ color: "#00ff00", fontSize: "14px", margin: "5px 0" }}>
+              接続中: {otherPlayers.length}人
+            </p>
+          </div>
+        )}
       </div>
     </>
   );
@@ -221,11 +339,12 @@ function Maze({ maze, goalPos }) {
   );
 }
 
-function PlayerControls({ wallPositions, goalPos, onClear, noclipManager, onNoclip }) {
+function PlayerControls({ wallPositions, goalPos, onClear, noclipManager, onNoclip, onPositionUpdate }) {
   const { camera, gl } = useThree();
   const direction = useRef(new THREE.Vector3());
   const keys = useRef({});
   const lastPosition = useRef(new THREE.Vector3());
+  const lastUpdateTime = useRef(0);
 
   const wallSize = 2;
   const walkSpeed = 4.0;
@@ -331,6 +450,15 @@ function PlayerControls({ wallPositions, goalPos, onClear, noclipManager, onNocl
     const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
     if (dist < 1.0) { // 球体半径＋プレイヤー半径程度
       onClear();
+    }
+
+    // マルチプレイ用に位置を定期的に送信
+    if (onPositionUpdate) {
+      const now = Date.now();
+      if (now - lastUpdateTime.current > 100) { // 100msごと
+        onPositionUpdate(camera.position);
+        lastUpdateTime.current = now;
+      }
     }
   });
 

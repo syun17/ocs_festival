@@ -7,6 +7,8 @@ import * as THREE from "three";
 import Entity from "./Entity";
 import GameOverScreen from "./GameOverScreen";
 import VHSEffect from "./VHSEffect";
+import OtherPlayer from "./OtherPlayer";
+import MultiplayerManager from "./MultiplayerManager";
 
 // 病院の廊下を生成（一本道 + 障害物）
 function generateHospitalCorridor(length = 100) {
@@ -69,11 +71,17 @@ function generateChasingEntities(playerStartZ, count = 8) {
   return entities;
 }
 
-export default function BackroomLevelRun({ onEscape, onGameOver }) {
+export default function BackroomLevelRun({ 
+  onEscape, 
+  onGameOver,
+  multiplayerConfig // { mode: "host" | "guest", roomId: string | null, playerName: string }
+}) {
   const audioRef = useRef(null);
   const [gameOver, setGameOver] = useState(false);
   const [playerPosition, setPlayerPosition] = useState(null);
   const [distance, setDistance] = useState(0); // ゴールまでの距離
+  const [otherPlayers, setOtherPlayers] = useState([]); // 他プレイヤーのリスト
+  const [createdRoomId, setCreatedRoomId] = useState(null); // ホストが作成したルームID
   const wallSize = 2;
   const corridorLength = 100;
   const goalDistance = corridorLength * wallSize - 20; // ゴール地点
@@ -91,9 +99,19 @@ export default function BackroomLevelRun({ onEscape, onGameOver }) {
     const distanceToGoal = goalDistance - position.z;
     setDistance(Math.max(0, Math.floor(distanceToGoal)));
     
+    // マルチプレイ対応: 自分の位置をサーバーに送信
+    // 実際の実装では、WebSocketを使って位置情報を送信
+    // sendPlayerPosition(position);
+    
     // ゴール到達チェック
     if (position.z >= goalDistance) {
       console.log('[BackroomLevelRun] Player reached the goal!');
+      
+      // マルチプレイ中の場合、全員にレベル完了イベントを送信
+      if (window.multiplayerSendLevelComplete) {
+        window.multiplayerSendLevelComplete("level-run");
+      }
+      
       if (onEscape) {
         onEscape();
       }
@@ -117,6 +135,33 @@ export default function BackroomLevelRun({ onEscape, onGameOver }) {
       });
     }
   }, []);
+
+  // マルチプレイ対応: 他プレイヤーデータの更新
+  // 実際の実装では、WebSocketやその他の通信手段を使用してデータを受け取る
+  useEffect(() => {
+    // マルチプレイが有効な場合は、MultiplayerManagerコンポーネントが処理する
+    // ここでは何もしない
+  }, []);
+
+  // ルーム作成時のコールバック
+  const handleRoomCreated = (roomId) => {
+    setCreatedRoomId(roomId);
+    console.log(`[BackroomLevelRun] Room created: ${roomId}`);
+  };
+
+  // マルチプレイエラーハンドラ
+  const handleMultiplayerError = (errorMessage) => {
+    console.error(`[BackroomLevelRun] Multiplayer error: ${errorMessage}`);
+    alert(`マルチプレイエラー: ${errorMessage}`);
+  };
+
+  // 他プレイヤーがレベル完了をトリガーしたときの処理
+  const handleLevelCompleteTriggered = (level, triggeredBy) => {
+    console.log(`[BackroomLevelRun] Level "${level}" completed by player ${triggeredBy}`);
+    if (onEscape) {
+      onEscape();
+    }
+  };
 
   if (gameOver) {
     return <GameOverScreen onRestart={() => window.location.reload()} />;
@@ -157,6 +202,16 @@ export default function BackroomLevelRun({ onEscape, onGameOver }) {
             />
           ))}
           
+          {/* 他プレイヤーの表示 */}
+          {otherPlayers.map((player) => (
+            <OtherPlayer
+              key={player.id}
+              position={player.position}
+              rotation={player.rotation}
+              playerName={player.name}
+            />
+          ))}
+          
           <HospitalPlayerControls 
             maze={maze}
             obstacles={obstacles}
@@ -166,6 +221,25 @@ export default function BackroomLevelRun({ onEscape, onGameOver }) {
           />
         </Canvas>
       </VHSEffect>
+      
+      {/* マルチプレイヤー通信マネージャー */}
+      {multiplayerConfig && (
+        <MultiplayerManager
+          serverUrl="ws://localhost:8080"
+          mode={multiplayerConfig.mode}
+          roomId={multiplayerConfig.roomId}
+          playerName={multiplayerConfig.playerName}
+          playerPosition={playerPosition ? {
+            x: playerPosition.x,
+            y: playerPosition.y,
+            z: playerPosition.z
+          } : null}
+          onPlayersUpdate={setOtherPlayers}
+          onRoomCreated={handleRoomCreated}
+          onError={handleMultiplayerError}
+          onLevelCompleteTriggered={handleLevelCompleteTriggered}
+        />
+      )}
       
       <div
         style={{
@@ -187,6 +261,54 @@ export default function BackroomLevelRun({ onEscape, onGameOver }) {
           ゴールまで: {distance}m
         </p>
         <p style={{ color: "#ffffff", fontSize: "16px" }}>⚠️ 後ろを振り返るな!</p>
+        
+        {/* マルチプレイ情報の表示 */}
+        {multiplayerConfig && (
+          <div style={{ 
+            marginTop: "10px", 
+            padding: "15px", 
+            backgroundColor: "rgba(0, 255, 0, 0.3)",
+            border: "3px solid #00ff00",
+            borderRadius: "8px",
+            boxShadow: "0 0 20px rgba(0, 255, 0, 0.5)"
+          }}>
+            <p style={{ color: "#00ff00", fontSize: "18px", margin: "5px 0", fontWeight: "bold" }}>
+              👥 マルチプレイモード
+            </p>
+            
+            {/* ホストの場合：作成されたルームID、ゲストの場合：参加したルームID */}
+            {(createdRoomId || multiplayerConfig.roomId) && (
+              <div style={{
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                padding: "10px",
+                borderRadius: "5px",
+                margin: "10px 0",
+                border: "2px solid #ffff00"
+              }}>
+                <p style={{ color: "#ffff00", fontSize: "14px", margin: "3px 0" }}>
+                  {multiplayerConfig.mode === "host" ? "📢 フレンドに共有:" : "参加中:"}
+                </p>
+                <p style={{ 
+                  color: "#ffff00", 
+                  fontSize: "32px", 
+                  margin: "5px 0", 
+                  fontWeight: "bold",
+                  letterSpacing: "8px",
+                  textShadow: "0 0 15px #ffff00"
+                }}>
+                  {createdRoomId || multiplayerConfig.roomId}
+                </p>
+              </div>
+            )}
+            
+            <p style={{ color: "#00ff00", fontSize: "14px", margin: "5px 0" }}>
+              プレイヤー: {multiplayerConfig.playerName}
+            </p>
+            <p style={{ color: "#00ff00", fontSize: "14px", margin: "5px 0" }}>
+              接続中: {otherPlayers.length}人
+            </p>
+          </div>
+        )}
       </div>
       
       {/* 緊急BGM */}
